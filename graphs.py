@@ -241,7 +241,61 @@ def buscaEmLargura(opt):
                 return
         print("O grafo é Euleriano")
 
-
+#Algoritmo de Busca em Profundidade
+def buscaEmProfundidade(opt):
+    num = findNome(input("Digite o nome do grafo: "))
+    if num < 0:
+        print("Grafo nao encontrado.")
+        return
+    adjList = matToAdjList(matrices[num][1])
+    pre = [[0 for i in adjList],1] 
+    low = [0 for i in adjList] 
+    inicio = int(input("Digite o v inicial: "))-1
+    for v in range(inicio,len(adjList)):
+    	if pre[0][v] == 0:
+    		if opt == 0: pre = DFS(v,adjList,pre)
+    		if opt == 1:
+    		    temp = Pontes(v,v,adjList,pre,low)
+    		    pre, low = temp[0], temp[1]
+    for v in range(0,inicio):
+    	if pre[0][v] == 0:
+    		if opt == 0: pre = DFS(v,adjList,pre)
+    		if opt == 1:
+    		    temp = Pontes(v,v,adjList,pre,low)
+    		    pre, low = temp[0], temp[1]
+    print("------ Final ------") 
+    print ("pre:", pre[0]) 
+    if opt == 1: print ("low:", low)
+   
+def DFS(v,aL,pre):
+	tpre = pre[1]
+	for i in aL[v]:
+	    pre[0][v] = tpre
+	    if pre[0][i] == 0:
+	        pre[1] += 1
+	        pre = DFS(i,aL,pre)
+	pre[0][v] = tpre
+	return pre
+	   
+def Pontes(p,v,aL,pre,low):
+	tpre = pre[1]
+	pre[0][v] = tpre
+	low[v] = pre[0][v]
+	print("pre:",pre[0], "low:", low)
+	for i in aL[v]:
+	    pre[0][v] = tpre
+	    if pre[0][i] == 0:
+	        pre[1] += 1
+	        temp = Pontes(v,i,aL,pre,low)
+	        pre, low = temp[0], temp[1]
+	        if low[i] == pre[0][i]:
+	            print("Ponte encontrada: {}-{}".format(v+1,i+1))
+	        low[v] = min(low[v], low[i])
+	    elif i != p:
+	        low[v] = min(low[v], pre[0][i])
+	pre[0][v] = tpre
+	return [pre,low]
+        
 #Retorna Coloração Gulosa dos Vértices
 def coloracaoGulosa():
     num = findNome(input("Digite o nome do grafo: "))
@@ -266,8 +320,8 @@ def coloracaoGulosa():
 def Programa():
     print("Carregando grafos...")
     listMat()
-    print("Comandos: ler, listar, colorir, addM, addG, nComp, Euler, fim")
     while True:
+        print("Comandos: ler, listar, colorir, addM, addG, nComp, Euler, fim")
         opt = input("O que deseja fazer? ")
         if opt == "ler": matPrint()
         elif opt == "listar": listMat()
@@ -277,6 +331,8 @@ def Programa():
         elif opt == "colorir": coloracaoGulosa()
         elif opt == "Euler": buscaEmLargura(1)
         elif opt == "secret": drawGraphs()
+        elif opt == "DFS": buscaEmProfundidade(0)
+        elif opt == "pontes": buscaEmProfundidade(1)
         elif opt == "fim": break
         else: print("Opcao invalida.")
     print("Fim do programa.")
