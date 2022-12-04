@@ -238,7 +238,10 @@ def buscaEmLargura(opt):
         for v in adjList:
             if len(v)%2 != 0:
                 print("O grafo não é Euleriano")
-                return
+                renum = findNome(input("Digite o nome do grafo: "))
+    if num < 0:
+        print("Grafo nao encontrado.")
+        returnturn
         print("O grafo é Euleriano")
 
 #Algoritmo de Busca em Profundidade
@@ -248,54 +251,70 @@ def buscaEmProfundidade(opt):
         print("Grafo nao encontrado.")
         return
     adjList = matToAdjList(matrices[num][1])
-    pre = [[0 for i in adjList],1] 
+    cpre = 0
+    pre = [0 for i in adjList] 
     low = [0 for i in adjList] 
     inicio = int(input("Digite o v inicial: "))-1
-    for v in range(inicio,len(adjList)):
-    	if pre[0][v] == 0:
-    		if opt == 0: pre = DFS(v,adjList,pre)
+    priorityList = list(range(inicio,len(adjList))) + list(range(0,inicio))
+    for v in priorityList:
+    	if pre[v] == 0:
+    		if opt == 0: 
+    		    pre, cpre = DFS(v,adjList,pre,cpre)
+    		    print (pre)
     		if opt == 1:
-    		    temp = Pontes(v,v,adjList,pre,low)
-    		    pre, low = temp[0], temp[1]
-    for v in range(0,inicio):
-    	if pre[0][v] == 0:
-    		if opt == 0: pre = DFS(v,adjList,pre)
-    		if opt == 1:
-    		    temp = Pontes(v,v,adjList,pre,low)
-    		    pre, low = temp[0], temp[1]
-    print("------ Final ------") 
-    print ("pre:", pre[0]) 
-    if opt == 1: print ("low:", low)
-   
-def DFS(v,aL,pre):
-	tpre = pre[1]
-	for i in aL[v]:
-	    pre[0][v] = tpre
-	    if pre[0][i] == 0:
-	        pre[1] += 1
-	        pre = DFS(i,aL,pre)
-	pre[0][v] = tpre
-	return pre
-	   
-def Pontes(p,v,aL,pre,low):
-	tpre = pre[1]
-	pre[0][v] = tpre
-	low[v] = pre[0][v]
-	print("pre:",pre[0], "low:", low)
-	for i in aL[v]:
-	    pre[0][v] = tpre
-	    if pre[0][i] == 0:
-	        pre[1] += 1
-	        temp = Pontes(v,i,aL,pre,low)
-	        pre, low = temp[0], temp[1]
-	        if low[i] == pre[0][i]:
-	            print("Ponte encontrada: {}-{}".format(v+1,i+1))
-	        low[v] = min(low[v], low[i])
-	    elif i != p:
-	        low[v] = min(low[v], pre[0][i])
-	pre[0][v] = tpre
-	return [pre,low]
-        
+    		    Pontes(v,v,adjList,pre,cpre,low)	    
+    
+def DFS(v,aL,pre,cpre):
+    cpre += 1
+    pre[v] = cpre
+    for i in aL[v]:
+        if pre[i] == 0:
+            pre, cpre = DFS(i,aL,pre,cpre)
+    return pre, cpre
+       
+def Pontes(p,v,aL,pre,cpre,low):
+    cpre += 1
+    pre[v] = cpre
+    low[v] = cpre
+    print ("Entrando em ", v+1, " -> pre:", pre, "low:", low)
+    for i in aL[v]:
+        if pre[i] == 0:
+            pre, cpre, low = Pontes(v,i,aL,pre,cpre,low)
+            if low[i] == pre[i]:
+                print("Ponte encontrada: {}-{}".format(v+1,i+1))
+            low[v] = min(low[v], low[i])
+        elif i != p:
+            low[v] = min(low[v], pre[i])
+    print ("Saindo de ", v+1, "   -> pre:", pre, "low:", low)
+    return pre, cpre, low
+    
+#def Biconexo(p,v,aL,pre,low):
+#    tpre = pre[1]
+#	pre[0][v] = tpre
+#	low[v] = tpre
+#	for i in aL[v]:
+#	    pre[0][v] = tpre
+#        se aresta (w, v) não marcada:
+#            Empilhar(w, v)
+#            Marcar (w, v)
+#	    if pre[0][i] == 0:
+#	        pre[1] += 1
+#	        temp = Pontes(v,i,aL,pre,low)
+#	        pre, low = temp[0], temp[1]
+#	        if pre[0][v] <= low[i]:
+#	            Desempilhar até (w, v)
+#	        low[v] = min(low[v], low[i])
+#	    elif i != p:
+#	        low[v] = min(low[v], pre[0][i])
+#	pre[0][v] = tpre
+#	return [pre,low]
+	
+#Externamente:
+#    Desmarcar vértices/arestas
+#    Esvaziar pilha
+#    cpre ← 0
+#    Blocos (1, 1)
+    
 #Retorna Coloração Gulosa dos Vértices
 def coloracaoGulosa():
     num = findNome(input("Digite o nome do grafo: "))
