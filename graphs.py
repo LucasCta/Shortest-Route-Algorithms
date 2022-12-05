@@ -250,23 +250,26 @@ def buscaEmProfundidade(opt):
     if num < 0:
         print("Grafo nao encontrado.")
         return
-    adjList = matToAdjList(matrices[num][1])
+    aL = matToAdjList(matrices[num][1])
     cpre = 0
-    pre = [0 for i in adjList] 
-    low = [0 for i in adjList] 
+    pre = [0 for i in aL] 
+    low = [0 for i in aL] 
+    pA, pM = [], []
     inicio = int(input("Digite o v inicial: "))-1
-    priorityList = list(range(inicio,len(adjList))) + list(range(0,inicio))
+    priorityList = list(range(inicio,len(aL))) + list(range(0,inicio))
     for v in priorityList:
     	if pre[v] == 0:
     		if opt == 0: 
-    		    pre, cpre = DFS(v,adjList,pre,cpre)
-    		    print (pre)
-    		if opt == 1:
-    		    Pontes(v,v,adjList,pre,cpre,low)	    
+    		    pre, cpre = DFS(v,aL,pre,cpre)
+    		elif opt == 1: 
+    		    pre, cpre, low = Pontes(v,v,aL,pre,cpre,low)	
+    		elif opt == 2: 
+    		    pre, cpre, low, pA, pM = Biconexo(v,v,aL,pre,cpre,low,pA,pM)
     
 def DFS(v,aL,pre,cpre):
     cpre += 1
     pre[v] = cpre
+    print (pre)
     for i in aL[v]:
         if pre[i] == 0:
             pre, cpre = DFS(i,aL,pre,cpre)
@@ -288,32 +291,29 @@ def Pontes(p,v,aL,pre,cpre,low):
     print ("Saindo de ", v+1, "   -> pre:", pre, "low:", low)
     return pre, cpre, low
     
-#def Biconexo(p,v,aL,pre,low):
-#    tpre = pre[1]
-#	pre[0][v] = tpre
-#	low[v] = tpre
-#	for i in aL[v]:
-#	    pre[0][v] = tpre
-#        se aresta (w, v) não marcada:
-#            Empilhar(w, v)
-#            Marcar (w, v)
-#	    if pre[0][i] == 0:
-#	        pre[1] += 1
-#	        temp = Pontes(v,i,aL,pre,low)
-#	        pre, low = temp[0], temp[1]
-#	        if pre[0][v] <= low[i]:
-#	            Desempilhar até (w, v)
-#	        low[v] = min(low[v], low[i])
-#	    elif i != p:
-#	        low[v] = min(low[v], pre[0][i])
-#	pre[0][v] = tpre
-#	return [pre,low]
+def Biconexo(p,v,aL,pre,cpre,low,pA,pM):
+    cpre += 1
+    pre[v] = cpre
+    low[v] = cpre
+    print ("Entrando em ", v+1, " -> pre:", pre, "low:", low)
+    for i in aL[v]:
+        aresta = ["{}-{}".format(min(i+1,v+1),max(i+1,v+1))]
+        if aresta not in pA and aresta not in pM:
+            pM.append(aresta)
+            pA.append(aresta)
+        if pre[i] == 0:
+            pre, cpre, low, pA, pM = Biconexo(v,i,aL,pre,cpre,low,pA,pM)
+            if pre[v] <= low[i]:
+                print ("Componente Biconexo: ",end="")
+                while pA[len(pA)-1] != aresta:
+                    print(pA.pop(),end="")
+                print(pA.pop())
+            low[v] = min(low[v], low[i])
+        elif i != p:
+	        low[v] = min(low[v], pre[i])
+    print ("Saindo de ", v+1, "   -> pre:", pre, "low:", low)
+    return pre, cpre, low, pA, pM
 	
-#Externamente:
-#    Desmarcar vértices/arestas
-#    Esvaziar pilha
-#    cpre ← 0
-#    Blocos (1, 1)
     
 #Retorna Coloração Gulosa dos Vértices
 def coloracaoGulosa():
@@ -340,18 +340,19 @@ def Programa():
     print("Carregando grafos...")
     listMat()
     while True:
-        print("Comandos: ler, listar, colorir, addM, addG, nComp, Euler, fim")
+        print("Comandos: ler, list, color, addM, addG, nComp, euler, DFS, ponte, biconexo, fim")
         opt = input("O que deseja fazer? ")
         if opt == "ler": matPrint()
-        elif opt == "listar": listMat()
+        elif opt == "list": listMat()
         elif opt == "addM": addMat()
         elif opt == "addG": addGraph()
         elif opt == "nComp": buscaEmLargura(0)
-        elif opt == "colorir": coloracaoGulosa()
-        elif opt == "Euler": buscaEmLargura(1)
+        elif opt == "color": coloracaoGulosa()
+        elif opt == "euler": buscaEmLargura(1)
         elif opt == "secret": drawGraphs()
         elif opt == "DFS": buscaEmProfundidade(0)
-        elif opt == "pontes": buscaEmProfundidade(1)
+        elif opt == "ponte": buscaEmProfundidade(1)
+        elif opt == "biconexo": buscaEmProfundidade(2)
         elif opt == "fim": break
         else: print("Opcao invalida.")
     print("Fim do programa.")
