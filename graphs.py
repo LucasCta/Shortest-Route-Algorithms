@@ -9,7 +9,7 @@ def drawGraphs():
                 if row[1][i][j] == 1:
                     G.add_edge(i,j)
         nx.draw(G)
-        plt.savefig("graph{}.png".format(row[0]))
+        plt.savefig("graphs\graph{}.png".format(row[0]))
         plt.clf()
 
 #Função Auxiliar para Restringir Valores
@@ -176,11 +176,11 @@ def graphs(opt,name):
 def loadGraphs():
     mat = []
     from os.path import exists
-    if exists("names.txt"):
-        file = open("names.txt")
+    if exists("graphs/names.txt"):
+        file = open("graphs/names.txt")
         for i in file:
-            if exists(str(i).strip()+".txt"):
-                files = open(str(i).strip()+".txt","r")
+            if exists("graphs/"+str(i).strip()+".txt"):
+                files = open("graphs/"+str(i).strip()+".txt","r")
                 mat2 = []
                 for j in files:
                     mat2.append([int(i) for i in j.strip().split(", ")])
@@ -195,13 +195,13 @@ def saveGraph(matrix, nome = False):
         nome = input("Qual nome deseja dar ao grafo? ")
         while findNome(nome) >= 0:
             nome = input("Nome ja em uso, digite outro: ")
-    file = open(nome+".txt","w")
+    file = open("graphs/"+nome+".txt","w")
     for i in matrix:
         file.write(", ".join(str(j) for j in i))
         file.write("\n")
     file.close()
     if findNome(nome) < 0:
-        file2 = open("names.txt","a+")
+        file2 = open("graphs/names.txt","a+")
         file2.write(nome+"\n")
         file2.close()
         matrices.append([nome,matrix])
