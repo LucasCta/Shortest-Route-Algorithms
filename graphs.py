@@ -67,7 +67,7 @@ def addMat():
             if mAvaliable == m:
                 matrix[i][j], matrix[j][i] = 1,1
                 continue
-            adj = input(str(i)+"-"+str(j)+": ")
+            adj = input(str(i+1)+"-"+str(j+1)+": ")
             while adj != "0" and adj != "1":
                 adj = int(input("Opcao invalida, digite outra: "))
             if adj == "1":
@@ -85,7 +85,7 @@ def addDigraph():
     for i in range(0,n):
         for j in range(0,n):
             if j == i: continue
-            adj = input(str(i)+"-"+str(j)+": ")
+            adj = input(str(i+1)+"-"+str(j+1)+": ")
             while adj != "0" and adj != "1":
                 adj = int(input("Opcao invalida, digite outra: "))
             if adj == "1":
@@ -355,7 +355,7 @@ def setWeightsGraph (aL):
     for vertice in range(0,len(aL)):
         for vizinho in range(0,len(aL[vertice])):
             if type(aL[vertice][vizinho]) == int:
-                peso = int(input("Digite o peso de "+ str(vertice) + "-" + str(aL[vertice][vizinho]) + ": "))
+                peso = int(input("Digite o peso de "+ str(vertice+1) + "-" + str(aL[vertice][vizinho]+1) + ": "))
                 for i in range(0,len(aL[aL[vertice][vizinho]])):
                     if aL[aL[vertice][vizinho]][i] == vertice: aL[aL[vertice][vizinho]][i] = (vertice, peso)
                 aL[vertice][vizinho] = (aL[vertice][vizinho], peso)
@@ -365,7 +365,7 @@ def setWeightsGraph (aL):
 def setWeightsDigraph (aL):
     for vertice in range(0,len(aL)):
         for vizinho in range(0,len(aL[vertice])):
-            peso = int(input("Digite o peso de "+ str(vertice) + "-" + str(aL[vertice][vizinho]) + ": "))
+            peso = int(input("Digite o peso de "+ str(vertice+1) + "-" + str(aL[vertice][vizinho]+1) + ": "))
             aL[vertice][vizinho] = (aL[vertice][vizinho], peso)
     return aL   
      
@@ -383,18 +383,39 @@ def plim():
     verticesMarcados = []
     verticesMarcados.append(inicio)
     while len(verticesMarcados) < len(aL):
+        print(arvore)
         verticeAdj = 999
         menorPeso = (999,99999999) 
         for i in verticesMarcados:
             for j in aL[i]:
                 if j[0] in verticesMarcados: continue
-                if j[1] < menorPeso[1]:
-                   menorPeso = j
-                   verticeAdj = i
+                if j[1] <= menorPeso[1]:
+                   if j[1] == menorPeso[1]:
+                        if j[0] < menorPeso[0]:
+                            menorPeso = j
+                            verticeAdj = i
+                   else:
+                        menorPeso = j
+                        verticeAdj = i            
         verticesMarcados.append(menorPeso[0])
         arvore[menorPeso[0]].append((verticeAdj,menorPeso[1]))
         arvore[verticeAdj].append(menorPeso)
     print(arvore)
+
+#Verifica Componentes
+def qntComponentes(adjList):
+    visited = []
+    cont = 0
+    for vI,vII in enumerate(adjList):
+        if vI in visited: continue
+        queue = [vI]
+        while len(queue) > 0:
+            v = queue.pop(0)
+            if v not in visited:
+                visited.append(v)
+                queue += set([i[0] for i in adjList[v]]).difference(visited)
+        cont+= 1
+    return cont
 
 #Arvore Geradora Minima
 def kruskal():
@@ -407,13 +428,23 @@ def kruskal():
     arvore = []
     for i in aL: arvore.append([])
     verticesMarcados = {"set"}
-    while len(verticesMarcados)-1 < len(aL):
+    while qntComponentes(arvore) > 1 or len(verticesMarcados)-1 < len(aL):
         verticeAdj = 999
         menorPeso = (999,99999999) 
         for i in range(0,len(aL)):
             for j in aL[i]:
-                if j[0] in verticesMarcados and i in verticesMarcados: continue
-                if j[1] < menorPeso[1]:
+                if j[0] in verticesMarcados and i in verticesMarcados:  
+                    qCompA = qntComponentes(arvore)
+                    arvore[j[0]].append((i,j[1]))
+                    arvore[i].append(j)
+                    qCompD = qntComponentes(arvore)
+                    if qCompA != qCompD:
+                        if j[1] < menorPeso[1]:
+                            menorPeso = j
+                            verticeAdj = i
+                    arvore[j[0]].remove((i,j[1]))
+                    arvore[i].remove(j)
+                elif j[1] < menorPeso[1]:
                    menorPeso = j
                    verticeAdj = i
         verticesMarcados.add(menorPeso[0])
@@ -430,12 +461,14 @@ def dijkstra():
         return
     aL = matToAdjList(matrices[num][1])
     aL = setWeightsDigraph(aL)
+    print(aL)
     inicio = int(input("Digite o v inicial: "))-1   
     distancia = []
     verticesMarcados = []
     for i in aL: distancia.append(9999999)
     distancia[inicio] = 0
     while len(verticesMarcados) < len(aL):
+        print (distancia)
         menorVertice = 999
         menorDistancia = 9999999
         for i in range(0,len(distancia)):
@@ -469,14 +502,17 @@ def floyd():
     for i in range(0,len(aL)):
         for j in aL[i]:
             distancias[i][j[0]] = j[1]
+    for n in distancias:
+        print(n)
     for k in range(0,len(distancias)):
         for i in range(0,len(distancias)):
             for j in range(0,len(distancias)):
                 if distancias[i][j] > distancias[i][k] + distancias[k][j]:
                     distancias[i][j] = distancias[i][k] + distancias[k][j]
-    for i in distancias:
-        print(i)
-    
+                    print("= k: {} i: {} j: {} =".format(k,i,j))
+                    for n in distancias:
+                        print(n)
+
 def Programa():
     print("Carregando grafos...")
     listMat()
