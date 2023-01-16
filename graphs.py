@@ -75,7 +75,23 @@ def addMat():
                 m -= 1
             mAvaliable -= 1
     saveGraph(matrix)
-
+    
+#Gera uma Matriz Personalizada
+def addDigraph():
+    n = numRestrict()
+    matrix = [[0 for j in range(0,n)] for i in range(0,n)]
+    print("[1]: Adjacencia")
+    print("[0]: N Adjacencia")
+    for i in range(0,n):
+        for j in range(0,n):
+            if j == i: continue
+            adj = input(str(i)+"-"+str(j)+": ")
+            while adj != "0" and adj != "1":
+                adj = int(input("Opcao invalida, digite outra: "))
+            if adj == "1":
+                matrix[i][j] = 1
+    saveGraph(matrix)
+    
 #Mostra as Opções de Grafos Conhecidos
 def addGraph():
     types = ["Completo","BipartidoCompleto","Estrela",
@@ -258,13 +274,13 @@ def buscaEmProfundidade(opt):
     inicio = int(input("Digite o v inicial: "))-1
     priorityList = list(range(inicio,len(aL))) + list(range(0,inicio))
     for v in priorityList:
-    	if pre[v] == 0:
-    		if opt == 0: 
-    		    pre, cpre = DFS(v,aL,pre,cpre)
-    		elif opt == 1: 
-    		    pre, cpre, low = Pontes(v,v,aL,pre,cpre,low)	
-    		elif opt == 2: 
-    		    pre, cpre, low, pA, pM = Biconexo(v,v,aL,pre,cpre,low,pA,pM)
+        if pre[v] == 0:
+            if opt == 0: 
+                pre, cpre = DFS(v,aL,pre,cpre)
+            elif opt == 1: 
+                pre, cpre, low = Pontes(v,v,aL,pre,cpre,low)    
+            elif opt == 2: 
+                pre, cpre, low, pA, pM = Biconexo(v,v,aL,pre,cpre,low,pA,pM)
     
 def DFS(v,aL,pre,cpre):
     cpre += 1
@@ -310,12 +326,10 @@ def Biconexo(p,v,aL,pre,cpre,low,pA,pM):
                 print(pA.pop())
             low[v] = min(low[v], low[i])
         elif i != p:
-	        low[v] = min(low[v], pre[i])
+            low[v] = min(low[v], pre[i])
     print ("Saindo de ", v+1, "   -> pre:", pre, "low:", low)
     return pre, cpre, low, pA, pM
-	
     
-#Retorna Coloração Gulosa dos Vértices
 def coloracaoGulosa():
     num = findNome(input("Digite o nome do grafo: "))
     if num < 0:
@@ -336,16 +350,144 @@ def coloracaoGulosa():
         print(color,end="")
     print("")
 
+#Define os Pesos de uma Lista de Adjacencia
+def setWeightsGraph (aL):
+    for vertice in range(0,len(aL)):
+        for vizinho in range(0,len(aL[vertice])):
+            if type(aL[vertice][vizinho]) == int:
+                peso = int(input("Digite o peso de "+ str(vertice) + "-" + str(aL[vertice][vizinho]) + ": "))
+                for i in range(0,len(aL[aL[vertice][vizinho]])):
+                    if aL[aL[vertice][vizinho]][i] == vertice: aL[aL[vertice][vizinho]][i] = (vertice, peso)
+                aL[vertice][vizinho] = (aL[vertice][vizinho], peso)
+    return aL
+    
+#Define os Pesos de uma Lista de Adjacencia
+def setWeightsDigraph (aL):
+    for vertice in range(0,len(aL)):
+        for vizinho in range(0,len(aL[vertice])):
+            peso = int(input("Digite o peso de "+ str(vertice) + "-" + str(aL[vertice][vizinho]) + ": "))
+            aL[vertice][vizinho] = (aL[vertice][vizinho], peso)
+    return aL   
+     
+#Arvore Geradora Minima
+def plim():
+    num = findNome(input("Digite o nome do grafo: "))
+    if num < 0:
+        print("Grafo nao encontrado.")
+        return
+    aL = matToAdjList(matrices[num][1])
+    aL = setWeightsGraph(aL)
+    inicio = int(input("Digite o v inicial: "))-1
+    arvore = []
+    for i in aL: arvore.append([])
+    verticesMarcados = []
+    verticesMarcados.append(inicio)
+    while len(verticesMarcados) < len(aL):
+        verticeAdj = 999
+        menorPeso = (999,99999999) 
+        for i in verticesMarcados:
+            for j in aL[i]:
+                if j[0] in verticesMarcados: continue
+                if j[1] < menorPeso[1]:
+                   menorPeso = j
+                   verticeAdj = i
+        verticesMarcados.append(menorPeso[0])
+        arvore[menorPeso[0]].append((verticeAdj,menorPeso[1]))
+        arvore[verticeAdj].append(menorPeso)
+    print(arvore)
+
+#Arvore Geradora Minima
+def kruskal():
+    num = findNome(input("Digite o nome do grafo: "))
+    if num < 0:
+        print("Grafo nao encontrado.")
+        return
+    aL = matToAdjList(matrices[num][1])
+    aL = setWeightsGraph(aL)
+    arvore = []
+    for i in aL: arvore.append([])
+    verticesMarcados = {"set"}
+    while len(verticesMarcados)-1 < len(aL):
+        verticeAdj = 999
+        menorPeso = (999,99999999) 
+        for i in range(0,len(aL)):
+            for j in aL[i]:
+                if j[0] in verticesMarcados and i in verticesMarcados: continue
+                if j[1] < menorPeso[1]:
+                   menorPeso = j
+                   verticeAdj = i
+        verticesMarcados.add(menorPeso[0])
+        verticesMarcados.add(verticeAdj)
+        arvore[menorPeso[0]].append((verticeAdj,menorPeso[1]))
+        arvore[verticeAdj].append(menorPeso)
+    print(arvore)
+    
+#Calculo do Menor Caminho
+def dijkstra():
+    num = findNome(input("Digite o nome do grafo: "))
+    if num < 0:
+        print("Grafo nao encontrado.")
+        return
+    aL = matToAdjList(matrices[num][1])
+    aL = setWeightsDigraph(aL)
+    inicio = int(input("Digite o v inicial: "))-1   
+    distancia = []
+    verticesMarcados = []
+    for i in aL: distancia.append(9999999)
+    distancia[inicio] = 0
+    while len(verticesMarcados) < len(aL):
+        menorVertice = 999
+        menorDistancia = 9999999
+        for i in range(0,len(distancia)):
+            if i in verticesMarcados: continue
+            if distancia[i] < menorDistancia:
+                menorDistancia = distancia[i]
+                menorVertice = i
+        verticesMarcados.append(menorVertice)
+        for i in aL[menorVertice]:
+            if i[0] in verticesMarcados: continue
+            if distancia[i[0]] > (distancia[menorVertice]+i[1]):
+                distancia[i[0]] = distancia[menorVertice]+i[1]       
+    print(distancia)        
+
+#Calculo dos Menores Caminhos
+def floyd():
+    num = findNome(input("Digite o nome do grafo: "))
+    if num < 0:
+        print("Grafo nao encontrado.")
+        return
+    aL = matToAdjList(matrices[num][1])
+    aL = setWeightsDigraph(aL)
+    distancias = []
+    for i in range(0,len(aL)):
+        distancias.append([])
+        for j in range(0,len(aL)):
+            if i == j: 
+                distancias[i].append(0)
+            else:
+                distancias[i].append(99999999)
+    for i in range(0,len(aL)):
+        for j in aL[i]:
+            distancias[i][j[0]] = j[1]
+    for k in range(0,len(distancias)):
+        for i in range(0,len(distancias)):
+            for j in range(0,len(distancias)):
+                if distancias[i][j] > distancias[i][k] + distancias[k][j]:
+                    distancias[i][j] = distancias[i][k] + distancias[k][j]
+    for i in distancias:
+        print(i)
+    
 def Programa():
     print("Carregando grafos...")
     listMat()
     while True:
-        print("Comandos: ler, list, color, addM, addG, nComp, euler, DFS, ponte, biconexo, fim")
+        print("Comandos: ler, list, color, addM, addG, addD, nComp, euler, DFS, ponte, biconexo, plim, kruskal, dijkstra, floyd, fim")
         opt = input("O que deseja fazer? ")
         if opt == "ler": matPrint()
         elif opt == "list": listMat()
         elif opt == "addM": addMat()
         elif opt == "addG": addGraph()
+        elif opt == "addD": addDigraph()
         elif opt == "nComp": buscaEmLargura(0)
         elif opt == "color": coloracaoGulosa()
         elif opt == "euler": buscaEmLargura(1)
@@ -353,6 +495,10 @@ def Programa():
         elif opt == "DFS": buscaEmProfundidade(0)
         elif opt == "ponte": buscaEmProfundidade(1)
         elif opt == "biconexo": buscaEmProfundidade(2)
+        elif opt == "plim": plim()
+        elif opt == "kruskal": kruskal()
+        elif opt == "dijkstra": dijkstra()
+        elif opt == "floyd": floyd()
         elif opt == "fim": break
         else: print("Opcao invalida.")
     print("Fim do programa.")
